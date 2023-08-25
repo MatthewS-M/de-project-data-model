@@ -10,7 +10,7 @@ with last_order_date as (
     group by user_id
 )
 insert into analysis.tmp_rfm_recency
-select o.user_id, ntile(5) over(order by order_date) as recency
+select o.user_id, case when order_date is null then 1 else ntile(5) over(order by order_date) end as recency
 from analysis.orders o 
     left join last_order_date od using(user_id)
 where
