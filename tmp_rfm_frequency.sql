@@ -10,7 +10,7 @@ with order_count as (
     group by user_id
 )
 insert into analysis.tmp_rfm_frequency
-select o.user_id, ntile(5) over(order by counter) as frequency
+select o.user_id, case when counter is null then 1 else ntile(5) over(order by counter) end as frequency
 from analysis.orders o 
     left join order_count oc using(user_id)
 where
