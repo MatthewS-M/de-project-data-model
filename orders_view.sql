@@ -1,7 +1,24 @@
-create or replace view analysis.orders as 
+create or replace view analysis.orders as
 with order_statuses as (
-    select order_id, max(status_id) as new_status, max(dttm) as last_time 
-    from production.orderstatuslog osl1 group by 1
+  select order_id, status_id, dttm,
+         row_number() over (partition by order_id order by dttm desc) as rn
+  from production.orderstatuslog
 )
-select order_id, order_ts, user_id, bonus_payment, payment, cost, bonus_grant, status, os.new_status 
-from production.orders join order_statuses os using(order_id);
+select o.order_id, o.order_ts, o.user_id, o.bonus_payment, o.payment, o.cost, o.bonus_grant, os.status
+from production.orders o
+join order_statuses os on o.order_id = os.order_id
+where os.rn = 1;
+
+-- или
+
+create or replace view analysis.orders as
+with order_statuses as (
+  select order_id, status_id, dttm,
+         rank() over (partition by order_id order by dttm desc) as rnk
+  from production.orderstatuslog
+)
+select o.order_id, o.order_ts, o.user_id, o.bonus_payment, o.payment, o.cost, o.bonus_grant, os.status
+from production.orders o
+join order_statuses os on o.order_id = os.order_id
+where os.rnk = 1;
+
