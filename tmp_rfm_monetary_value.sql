@@ -10,7 +10,7 @@ with order_sum as (
     group by user_id
 )
 insert into analysis.tmp_rfm_monetary_value
-select o.user_id, sum_paid case when sum_paid is null then 1 else ntile(5) over(order by sum_paid) end as monetary_value
+select o.user_id, case when sum_paid is null then 1 else ntile(5) over(order by sum_paid) end as monetary_value
 from analysis.orders o 
     left join order_sum using(user_id)
 where
